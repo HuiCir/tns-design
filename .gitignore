@@ -1,5 +1,5 @@
-node_modules/
 .tns/
 output/
 *.tgz
+*.html
 .DS_Store

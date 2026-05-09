@@ -11,11 +11,6 @@
     "name": "claude"
   },
   "program": {
-    "entry": "sec-001",
-    "context": {
-      "visited_sections": [],
-      "current_section": "sec-001"
-    },
     "max_steps": 24,
     "threads": 4,
     "parallel": {
@@ -28,32 +23,8 @@
     "profiles": {
       "standard": {
         "permission_mode": "acceptEdits",
-        "allowed_tools": [
-          "Read",
-          "Write",
-          "Edit",
-          "Bash",
-          "Glob",
-          "Grep",
-          "WebFetch",
-          "WebSearch"
-        ],
-        "allowed_bash_commands": [
-          "pwd",
-          "ls",
-          "cat",
-          "sed",
-          "rg",
-          "find",
-          "git",
-          "node",
-          "mkdir",
-          "cp",
-          "mv",
-          "rm",
-          "curl",
-          "npx"
-        ],
+        "allowed_tools": ["Read", "Write", "Edit", "Bash", "Glob", "Grep", "WebFetch", "WebSearch"],
+        "allowed_bash_commands": ["pwd", "ls", "cat", "sed", "rg", "find", "git", "node", "mkdir", "cp", "mv", "rm", "curl", "npx"],
         "path_scope": "workspace"
       }
     },
@@ -153,13 +124,7 @@
         "kind": "skills_dir",
         "priority": 40
       }
-    ],
-    "selection": {
-      "mode": "explicit",
-      "max_matches_per_section": 2,
-      "min_score": 0.22,
-      "verifier_mode": "none"
-    }
+    ]
   },
   "injections": {
     "default_profile": null,
@@ -173,25 +138,12 @@
         "description": "Planner skill for task planning passes."
       },
       "executor_task": {
-        "skills": [
-          "saas-landing",
-          "dashboard",
-          "html-ppt-pitch-deck",
-          "web-prototype",
-          "html-ppt",
-          "mobile-app",
-          "social-carousel",
-          "image-poster",
-          "docs-page",
-          "pricing-page"
-        ],
-        "external_skill_paths": [],
-        "description": "Open Design skills for design artifact generation. Executor-only; verifier does not inherit."
+        "skills": ["saas-landing", "dashboard", "html-ppt-pitch-deck", "web-prototype", "html-ppt", "mobile-app", "social-carousel", "image-poster", "docs-page", "pricing-page"],
+        "description": "Open Design skills for design artifact generation."
       },
       "verifier_audit": {
         "skills": [],
-        "external_skill_paths": [],
-        "description": "Verifier-only audit skills. Add readonly inspection, schema, or test skills here."
+        "description": "Verifier-only audit skills."
       }
     },
     "rules": [
@@ -202,35 +154,14 @@
     ]
   },
   "policy": {
-    "preflight_failure": {
-      "action": "block_section",
-      "review_prefix": "Preflight failed"
-    },
-    "command_failure": {
-      "action": "mark_needs_fix",
-      "review_prefix": "Command hook failed"
-    },
-    "outside_workspace_violation": {
-      "action": "block_section",
-      "review_prefix": "Workspace boundary violation"
-    },
+    "preflight_failure": { "action": "block_section", "review_prefix": "Preflight failed" },
+    "command_failure": { "action": "mark_needs_fix", "review_prefix": "Command hook failed" },
+    "outside_workspace_violation": { "action": "block_section", "review_prefix": "Workspace boundary violation" },
     "validator_failure": {
-      "preflight": {
-        "action": "block_section",
-        "review_prefix": "Preflight validator failed"
-      },
-      "pre_step": {
-        "action": "mark_needs_fix",
-        "review_prefix": "Pre-step validator failed"
-      },
-      "post_step": {
-        "action": "mark_needs_fix",
-        "review_prefix": "Post-step validator failed"
-      },
-      "post_run": {
-        "action": "mark_needs_fix",
-        "review_prefix": "Post-run validator failed"
-      }
+      "preflight": { "action": "block_section", "review_prefix": "Preflight validator failed" },
+      "pre_step": { "action": "mark_needs_fix", "review_prefix": "Pre-step validator failed" },
+      "post_step": { "action": "mark_needs_fix", "review_prefix": "Post-step validator failed" },
+      "post_run": { "action": "mark_needs_fix", "review_prefix": "Post-run validator failed" }
     }
   },
   "validators": []

@@ -7,15 +7,15 @@ them in parallel.
 Global protocol for every section:
 
 - If an Open Design skill is listed, read its SKILL.md from the injected skill profile before acting.
-- Read the active design system's DESIGN.md for color/typography tokens.
-- Write the output file to the workspace root as a self-contained HTML file.
+- Read the active design system for color/typography tokens (139 systems available via OD skillbase).
+- Write output as self-contained HTML files to the workspace root. No external dependencies.
 - Validate HTML: balanced tags, no broken references, no external font/image deps.
 - Include used skill names in `skills_used` when reporting.
 
 ## Section 1 — SaaS Landing Page
 
 Design a modern SaaS landing page for "[YOUR PRODUCT]" — a [BRIEF DESCRIPTION].
-Use the `saas-landing` skill from Open Design with the `stripe` design system.
+Use the `saas-landing` skill from Open Design with your preferred design system.
 
 Requirements:
 - Hero section with headline, subheadline, and CTA
@@ -31,12 +31,11 @@ Acceptance criteria:
 - Uses consistent design system color tokens
 
 Open Design skill: saas-landing
-Design system: stripe
 
 ## Section 2 — Analytics Dashboard
 
 Design a data analytics dashboard for "[YOUR PRODUCT]".
-Use the `dashboard` skill from Open Design with the `linear-app` design system.
+Use the `dashboard` skill from Open Design with your preferred design system.
 
 Requirements:
 - Sidebar navigation with menu items
@@ -51,7 +50,6 @@ Acceptance criteria:
 - Uses consistent design system color tokens
 
 Open Design skill: dashboard
-Design system: linear-app
 
 ## Section 3 — Pitch Deck
 
@@ -73,4 +71,3 @@ Acceptance criteria:
 - Consistent theme and typography
 
 Open Design skill: html-ppt-pitch-deck
-Theme: minimal-white
