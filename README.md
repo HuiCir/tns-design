@@ -1,22 +1,38 @@
 # tns-design
 
-Open Design × TNS multi-threaded design swarm. Clone and run.
+`tns-design` is a Token Never Sleeps design swarm workspace. It is a TNS
+case/reference workspace, not an independent npm package.
+
+The complete multi-artifact design pipeline is defined as a **TNS FSM program** in
+`tns_config.json` — no Python, no LangGraph, no external orchestration.
+TNS drives everything: parallel section dispatch, Open Design skill injection,
+executor/verifier loops, output validation, and gateway monitoring.
 
 ## Example Outputs
 
-### Dashboard (dashboard.html)
+### Dashboard (dashboard.html) — `linear-app` design system
 ![Dashboard](example/dashboard.png)
 
-### SaaS Landing (landing.html)
+### SaaS Landing (landing.html) — `stripe` design system
 ![Landing](example/business.jpg)
 
-### Pitch Deck (pitch.html)
+### Pitch Deck (pitch.html) — `minimal-white` theme, press `S` for presenter mode
 ![Pitch Deck](example/ppt-combined.jpg)
 
-### Dashboard Report
+### Design Report Artifact
 ![Report](example/report.jpg)
 
-## Quickstart
+## Install TNS
+
+```bash
+npm install -g token-never-sleeps@1.0.3
+tns --version
+```
+
+Requires `claude` CLI in `PATH`. Open Design macOS app provides the
+skill library (63+ design skills, 139+ design systems).
+
+## Run With TNS
 
 ```bash
 git clone https://github.com/HuiCir/tns-design.git ./my-designs
@@ -29,42 +45,250 @@ tns skill source-add \
   --kind "skills_dir" \
   --priority 50
 
+tns skill source-add \
+  --path "/Applications/Open Design.app/Contents/Resources/open-design/design-systems" \
+  --id "open-design-systems" \
+  --kind "skills_dir" \
+  --priority 45
+
+# Initialize workspace state
+tns init --workspace "$PWD" --task task.md --runner direct
+
 # Compile the parallel orchestration program
 tns compile --synthesize --apply
 
-# Run the swarm (3 sections × 4 threads)
+# Verify setup
+tns doctor
+
+# Gateway + dashboard (recommended for monitoring)
+tns gateway serve &
+tns gateway web --port 48731 &
+tns start
+
+# Or one-shot run
 tns run --once
-
-# Check results
-tns status
-ls *.html
 ```
 
-## How It Works
+`git clone` gives you the template workspace: `task.md`, `tns_config.json`,
+and `scripts/verify_designs.js`. It does not include `.tns/`, because `.tns/`
+is local runtime state: locks, section status, compiled program, gateway events,
+runner heartbeats, and agent run records. `tns init` creates that local runtime
+directory for the clone you are about to run.
+
+Use gateway/dashboard mode for normal runs: keep `tns gateway serve`,
+`tns gateway web --port 48731`, and `tns start` running in separate
+shells or a process manager. For a one-shot run, use `tns run --once`
+instead of `tns start`.
+
+## Architecture
 
 ```
-task.md                    →  3 independent design sections
-tns_config.json            →  4-thread swarm + OD skill injection
-tns compile --apply        →  FSM parallel plan (all sections in one batch)
-tns run --once             →  3 executors run concurrently, each with OD skills
+tns_config.json          task.md
+  │  FSM program           │  3 independent sections
+  │  4 states              │  Objective/Skill/Design System/Output
+  ▼                        ▼
+  └──────────┬─────────────┘
+             ▼
+     TNS FSM Runtime
+     (parallel mode: auto, max_threads: 4)
+             │
+    ┌────────┼────────┐
+    ▼        ▼        ▼
+ [sec-001] [sec-002] [sec-003]
+ claude -p claude -p claude -p
+    │        │        │
+    ▼        ▼        ▼
+ landing  dashboard  pitch
+  .html     .html     .html
+             │
+    ┌────────┴────────┐
+    ▼                 ▼
+ [verifier]        gateway
+ claude -p         :48731
+    │
+    ▼
+ sections.json (all done ✓)
 ```
 
-Each section maps to one design artifact:
-- **Section 1** → landing.html (saas-landing skill)
-- **Section 2** → dashboard.html (dashboard skill)  
-- **Section 3** → pitch.html (html-ppt-pitch-deck skill, press S for presenter mode)
+## FSM Pipeline
 
-## Prerequisites
+```
+sec-001  SaaS Landing Page    → landing.html    (saas-landing skill)
+sec-002  Analytics Dashboard  → dashboard.html  (dashboard skill)
+sec-003  Pitch Deck           → pitch.html      (html-ppt-pitch-deck skill)
+```
 
-- Node.js 22+, `tns` CLI, `claude` CLI
-- [Open Design](https://github.com/nexu-io/open-design) macOS app
+All three sections have **no cross-dependencies** (`depends_on: []`),
+so TNS compiles them into a single parallel batch. Each section runs
+on its own thread with independent resource locking.
 
-## Customization
+Each section goes through the TNS executor→verifier loop:
 
-Edit `task.md` sections with your own product brief, then edit `tns_config.json`:
-- `threads` / `parallel.max_threads` — match your section count
-- `injections.profiles.executor_task.skills` — add the OD skills you need
-- `externals.skills` — declare required skills per section
+1. **pending** → awaiting processing
+2. **executor** → Claude Code agent generates design artifact with injected OD skill
+3. **verifier** → independent agent checks HTML validity, structure, and design tokens
+4. **done** / **needs_fix** → pass or retry (max 3 attempts)
+
+## Project Structure
+
+```
+├── tns_config.json              # TNS config + 4-thread swarm FSM program
+├── task.md                      # Section definitions (Requirements/Acceptance/Skills)
+├── scripts/
+│   └── verify_designs.js        # Output validation script
+├── example/                     # Generated design screenshots
+│   ├── dashboard.png
+│   ├── business.jpg
+│   ├── ppt-combined.jpg
+│   └── report.jpg
+├── landing.html                 # Generated by sec-001 executor
+├── dashboard.html               # Generated by sec-002 executor
+├── pitch.html                   # Generated by sec-003 executor
+└── .gitignore
+```
+
+Generated `.html` files are `.gitignore`d — the repo ships only the template.
+Your design outputs appear after running the swarm.
+
+## Open Design Skills
+
+The template pre-declares 10 OD skills in `injections.profiles.executor_task.skills`
+and injects them into every executor run:
+
+| Skill | Purpose |
+|-------|---------|
+| `saas-landing` | Hero, features grid, pricing, CTA, social proof |
+| `dashboard` | Sidebar, KPI cards, chart area, data tables |
+| `html-ppt-pitch-deck` | Multi-slide deck with presenter mode |
+| `html-ppt` | Full PPT studio: 36 themes, 31 layouts, 47 animations |
+| `web-prototype` | General-purpose landing/marketing pages |
+| `mobile-app` | Mobile app prototype with device frames |
+| `social-carousel` | Social media carousel posts |
+| `image-poster` | Standalone image poster/graphic |
+| `docs-page` | Documentation page layout |
+| `pricing-page` | Pricing comparison page |
+
+### Skill injection flow
+
+```
+tns_config.json
+  └── injections.profiles.executor_task.skills
+        └── ["saas-landing", "dashboard", ...]
+              │
+              ▼
+        TNS compile
+          └── FSM program state.parallel.skills
+                │
+                ▼
+        tns run --once
+          └── claude -p --agent tns-executor
+                │  --json-schema executor
+                │  prompt: "Target section: sec-001..."
+                │  injected skills: saas-landing, dashboard, ...
+                │
+                ▼
+        Executor reads skill SKILL.md → applies design pattern → writes .html
+```
+
+Executors receive skill names in their prompt. When a listed skill is relevant,
+the executor reads its `SKILL.md` from the OD skillbase and follows the design
+workflow. Verifiers do **not** inherit executor skills — they audit output
+independently.
+
+### verify_designs.js
+
+Post-generation validation script. Checks:
+- File existence for `landing.html`, `dashboard.html`, `pitch.html`
+- Valid `<!DOCTYPE>` / `<html>` opening
+- `<title>` and `<style>` presence
+- Minimum file size (3KB+)
+- Rough `<div>` tag balance
+
+```bash
+node scripts/verify_designs.js
+```
+
+## Swarm Configuration
+
+Key settings in `tns_config.json`:
+
+```json
+{
+  "threads": 4,
+  "program": {
+    "parallel": { "mode": "auto", "max_threads": 4 }
+  },
+  "execution": {
+    "long_running":  { "max_parallel": 4 },
+    "verifier":      { "max_parallel": 4 }
+  },
+  "skillbases": {
+    "sources": [{
+      "id": "open-design",
+      "path": "/Applications/Open Design.app/Contents/Resources/open-design/skills",
+      "kind": "skills_dir",
+      "priority": 50
+    }]
+  }
+}
+```
+
+Adjust `threads` and all `max_parallel` values to match your section count
+for full concurrent execution.
+
+## Customize For Your Design Task
+
+1. Edit `task.md` sections with your product name and requirements.
+   - Each section should be **independent** (no file dependencies) for
+     maximum parallelism.
+   - List the OD skill name and design system for each section.
+
+2. Update `externals.skills` in `tns_config.json` to declare which
+   skills each section requires.
+
+3. Update `injections.profiles.executor_task.skills` to pre-load
+   the OD skills your task needs. Available skills:
+   - Pages: `web-prototype`, `saas-landing`, `pricing-page`, `docs-page`, `dashboard`
+   - Mobile: `mobile-app`, `mobile-onboarding`, `gamified-app`
+   - PPT: `html-ppt`, `html-ppt-pitch-deck`, `simple-deck`, `replit-deck`
+   - Media: `image-poster`, `social-carousel`, `video-shortform`, `hyperframes`
+   - Docs: `blog-post`, `email-marketing`, `finance-report`, `meeting-notes`
+   - Full list: run `tns skill list --compact`
+
+4. Add or remove sections in `task.md`, then adjust `program.max_steps`
+   accordingly (approx. 8 × section count).
+
+5. Run `tns compile --synthesize --apply` to rebuild the FSM program.
+
+6. Start the pipeline with `tns start` (or step through with `tns run --once`).
+
+## Design Systems
+
+Open Design ships 139 brand design systems (Apple, Stripe, Linear, Airbnb,
+Notion, Vercel, Shopify, etc.). To use a specific system, mention it in
+the section body of `task.md`:
+
+```
+Design a landing page for FlowOps using the `stripe` design system.
+Open Design skill: saas-landing
+Design system: stripe
+```
+
+The executor reads the design system's `DESIGN.md` from the OD skillbase
+and maps its color/typography/layout tokens into the output.
+
+## Troubleshooting
+
+**Agents stuck with no output**: ensure `permissions.profiles.standard.allowed_tools`
+includes `["Read", "Write", "Edit", "Bash", "Glob", "Grep"]`. Without Write/Edit,
+executors can read OD skills but cannot create output files.
+
+**Sections not running in parallel**: check that sections have no cross-references
+in their file paths. TNS detects file-based dependencies and serializes sections
+that read/write the same files. Use unique output filenames per section.
+
+**Skill not found**: run `tns skill doctor` to verify the Open Design skillbase
+source is registered and the skills directory exists.
 
 ## License
 
