@@ -1,0 +1,33 @@
+{
+  "name": "tns-design",
+  "version": "0.1.0",
+  "description": "TNS Design Swarm — Open Design × TNS multi-threaded design orchestration",
+  "type": "module",
+  "bin": {
+    "tns-design": "bin/tns-design.js"
+  },
+  "files": [
+    "bin",
+    "templates",
+    "README.md"
+  ],
+  "keywords": [
+    "tns",
+    "open-design",
+    "design",
+    "swarm",
+    "orchestration",
+    "multi-agent",
+    "prototype",
+    "claude"
+  ],
+  "homepage": "https://github.com/HuiCir/tns-design",
+  "repository": "github:HuiCir/tns-design",
+  "license": "MIT",
+  "dependencies": {
+    "execa": "^9.5.2"
+  },
+  "peerDependencies": {
+    "token-never-sleeps": "^1.0.0"
+  }
+}

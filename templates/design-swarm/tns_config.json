@@ -1,0 +1,237 @@
+{
+  "thread": 4,
+  "threads": 4,
+  "refresh_hours": 5,
+  "permission_mode": "acceptEdits",
+  "effort": "high",
+  "success_interval_seconds": 1,
+  "idle_interval_seconds": 60,
+  "max_budget_usd": null,
+  "agent_provider": {
+    "name": "claude"
+  },
+  "program": {
+    "entry": "sec-001",
+    "context": {
+      "visited_sections": [],
+      "current_section": "sec-001"
+    },
+    "max_steps": 24,
+    "threads": 4,
+    "parallel": {
+      "mode": "auto",
+      "max_threads": 4
+    }
+  },
+  "permissions": {
+    "default_profile": "standard",
+    "profiles": {
+      "standard": {
+        "permission_mode": "acceptEdits",
+        "allowed_tools": [
+          "Read",
+          "Write",
+          "Edit",
+          "Bash",
+          "Glob",
+          "Grep",
+          "WebFetch",
+          "WebSearch"
+        ],
+        "allowed_bash_commands": [
+          "pwd",
+          "ls",
+          "cat",
+          "sed",
+          "rg",
+          "find",
+          "git",
+          "node",
+          "mkdir",
+          "cp",
+          "mv",
+          "rm",
+          "curl",
+          "npx"
+        ],
+        "path_scope": "workspace"
+      }
+    },
+    "section_profiles": []
+  },
+  "monitor": {
+    "heartbeat_seconds": 30,
+    "max_agent_runtime_seconds": 1800,
+    "kill_grace_seconds": 15
+  },
+  "exploration": {
+    "enabled": false,
+    "allow_taskx": true,
+    "taskx_filename": "taskx.md",
+    "max_rounds_per_window": 1,
+    "agent": "tns-executor",
+    "plan_taskx": true,
+    "taskx_min_score": 75,
+    "taskx_branch_dir": ".tns/taskx",
+    "require_taskx_deliverables": true
+  },
+  "tmux": {
+    "enabled": false,
+    "auto_create": true,
+    "session_name": "",
+    "window_name": "tns",
+    "socket_name": "",
+    "manage_runner": false,
+    "runner_window_name": "tns-runner"
+  },
+  "attempts": {
+    "max_attempts_per_section": 3
+  },
+  "preflight": {
+    "required_files": ["task.md"],
+    "required_directories": [".tns"]
+  },
+  "command_bridge": {
+    "command_sets": {},
+    "hooks": []
+  },
+  "outputs": {
+    "write_section_outputs": true
+  },
+  "execution": {
+    "long_running": {
+      "agent": "tns-executor",
+      "workspace": "primary",
+      "persists_state": true,
+      "max_parallel": 4
+    },
+    "temporary": {
+      "agent": "tns-temp-executor",
+      "workspace": "temporary",
+      "persists_state": false,
+      "must_report_to": "tns-executor",
+      "gc_after_run": true,
+      "max_parallel": 4
+    },
+    "verifier": {
+      "agent": "tns-verifier",
+      "workspace": "primary",
+      "persists_state": false,
+      "must_report_to": "tns-executor",
+      "gc_after_run": true,
+      "max_runtime_seconds": 600,
+      "max_parallel": 4
+    }
+  },
+  "externals": {
+    "tools": [],
+    "skills": [
+      { "name": "saas-landing", "required": true, "purpose": "Generate SaaS landing page HTML", "source_id": "open-design" },
+      { "name": "dashboard", "required": true, "purpose": "Generate analytics dashboard HTML", "source_id": "open-design" },
+      { "name": "html-ppt-pitch-deck", "required": true, "purpose": "Generate investor pitch deck HTML", "source_id": "open-design" }
+    ],
+    "mcp": []
+  },
+  "skillbases": {
+    "use_default_sources": true,
+    "sources": [
+      {
+        "id": "open-design",
+        "path": "/Applications/Open Design.app/Contents/Resources/open-design/skills",
+        "kind": "skills_dir",
+        "priority": 50
+      },
+      {
+        "id": "open-design-systems",
+        "path": "/Applications/Open Design.app/Contents/Resources/open-design/design-systems",
+        "kind": "skills_dir",
+        "priority": 45
+      },
+      {
+        "id": "open-design-craft",
+        "path": "/Applications/Open Design.app/Contents/Resources/open-design/craft",
+        "kind": "skills_dir",
+        "priority": 40
+      }
+    ],
+    "selection": {
+      "mode": "explicit",
+      "max_matches_per_section": 2,
+      "min_score": 0.22,
+      "verifier_mode": "none"
+    }
+  },
+  "injections": {
+    "default_profile": null,
+    "profiles": {
+      "compiler": {
+        "skills": ["tns-program-compiler"],
+        "description": "Compiler skill for compile synthesis passes."
+      },
+      "planner": {
+        "skills": ["tns-task-planner"],
+        "description": "Planner skill for task planning passes."
+      },
+      "executor_task": {
+        "skills": [
+          "saas-landing",
+          "dashboard",
+          "html-ppt-pitch-deck",
+          "web-prototype",
+          "html-ppt",
+          "mobile-app",
+          "social-carousel",
+          "image-poster",
+          "docs-page",
+          "pricing-page"
+        ],
+        "external_skill_paths": [],
+        "description": "Open Design skills for design artifact generation. Executor-only; verifier does not inherit."
+      },
+      "verifier_audit": {
+        "skills": [],
+        "external_skill_paths": [],
+        "description": "Verifier-only audit skills. Add readonly inspection, schema, or test skills here."
+      }
+    },
+    "rules": [
+      { "match_mode": "compile", "profile": "compiler" },
+      { "match_mode": "plan", "profile": "planner" },
+      { "match_mode": "executor", "profile": "executor_task" },
+      { "match_mode": "verifier", "profile": "verifier_audit" }
+    ]
+  },
+  "policy": {
+    "preflight_failure": {
+      "action": "block_section",
+      "review_prefix": "Preflight failed"
+    },
+    "command_failure": {
+      "action": "mark_needs_fix",
+      "review_prefix": "Command hook failed"
+    },
+    "outside_workspace_violation": {
+      "action": "block_section",
+      "review_prefix": "Workspace boundary violation"
+    },
+    "validator_failure": {
+      "preflight": {
+        "action": "block_section",
+        "review_prefix": "Preflight validator failed"
+      },
+      "pre_step": {
+        "action": "mark_needs_fix",
+        "review_prefix": "Pre-step validator failed"
+      },
+      "post_step": {
+        "action": "mark_needs_fix",
+        "review_prefix": "Post-step validator failed"
+      },
+      "post_run": {
+        "action": "mark_needs_fix",
+        "review_prefix": "Post-run validator failed"
+      }
+    }
+  },
+  "validators": []
+}

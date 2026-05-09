@@ -1,0 +1,5 @@
+node_modules/
+.tns/
+output/
+*.tgz
+.DS_Store
