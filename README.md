@@ -8,13 +8,13 @@ Open Design × TNS multi-threaded design swarm. Clone and run.
 ![Dashboard](example/dashboard.png)
 
 ### SaaS Landing (landing.html)
-![Landing](example/business.png)
+![Landing](example/business.jpg)
 
 ### Pitch Deck (pitch.html)
-![Pitch Deck](example/ppt-combined.png)
+![Pitch Deck](example/ppt-combined.jpg)
 
 ### Dashboard Report
-![Report](example/report.png)
+![Report](example/report.jpg)
 
 ## Quickstart
 
